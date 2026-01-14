@@ -30,7 +30,7 @@ run:
 	cargo run
 
 install:
-	cargo install --path .
+	cargo install --features server --path .
 
 docker-build:
 	docker build -t $(DOCKER_IMAGE) .
