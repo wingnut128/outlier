@@ -6,7 +6,7 @@ use std::io::BufReader;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "prate")]
+#[command(name = "outlier")]
 #[command(version)]
 #[command(about = "Calculate percentiles from numerical datasets", long_about = None)]
 struct Args {

@@ -107,8 +107,8 @@ cargo release patch
 cargo release patch --execute
 
 # 6. Verify on GitHub
-# Check: https://github.com/wingnut128/prate/releases
-# Check: https://github.com/wingnut128/prate/tags
+# Check: https://github.com/wingnut128/outlier/releases
+# Check: https://github.com/wingnut128/outlier/tags
 ```
 
 ## Troubleshooting
@@ -160,7 +160,7 @@ sign-tag = false # Don't sign tags (can enable if you have GPG)
 
 After cargo-release creates the tag, you can create a GitHub Release manually:
 
-1. Go to https://github.com/wingnut128/prate/releases/new
+1. Go to https://github.com/wingnut128/outlier/releases/new
 2. Select the tag (e.g., `v0.1.1`)
 3. Title: `v0.1.1`
 4. Copy the relevant section from `CHANGELOG.md` into the description

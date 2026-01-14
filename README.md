@@ -1,7 +1,7 @@
-# prate - Percentile Calculator
+# outlier - Percentile Calculator
 
-[![CI](https://github.com/wingnut128/prate/actions/workflows/ci.yml/badge.svg)](https://github.com/wingnut128/prate/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/wingnut128/prate/actions/workflows/codeql.yml/badge.svg)](https://github.com/wingnut128/prate/actions/workflows/codeql.yml)
+[![CI](https://github.com/wingnut128/outlier/actions/workflows/ci.yml/badge.svg)](https://github.com/wingnut128/outlier/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/wingnut128/outlier/actions/workflows/codeql.yml/badge.svg)](https://github.com/wingnut128/outlier/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A fast and efficient command-line tool for calculating percentiles from numerical datasets. Percentiles are statistical measures that indicate the value below which a given percentage of observations fall in a distribution. Commonly used for analyzing performance metrics, response times, system latencies, and other data distributions.
@@ -40,7 +40,7 @@ cargo install --path .
 make docker-build
 
 # Or using docker directly
-docker build -t prate:latest .
+docker build -t outlier:latest .
 ```
 
 ## Usage
@@ -49,7 +49,7 @@ docker build -t prate:latest .
 
 Calculate the 95th percentile (default) from CLI values:
 ```bash
-prate -v 1,2,3,4,5,6,7,8,9,10
+outlier -v 1,2,3,4,5,6,7,8,9,10
 ```
 
 Output:
@@ -62,13 +62,13 @@ Percentile (P95): 9.55
 
 Calculate the 99th percentile:
 ```bash
-prate -p 99 -v 1,2,3,4,5,6,7,8,9,10
+outlier -p 99 -v 1,2,3,4,5,6,7,8,9,10
 ```
 
 ### From JSON File
 
 ```bash
-prate -p 95 -f examples/sample.json
+outlier -p 95 -f examples/sample.json
 ```
 
 Example JSON format (array of numbers):
@@ -79,7 +79,7 @@ Example JSON format (array of numbers):
 ### From CSV File
 
 ```bash
-prate -p 99 -f examples/sample.csv
+outlier -p 99 -f examples/sample.csv
 ```
 
 Example CSV format (header row "value", one value per line):
@@ -94,7 +94,7 @@ value
 ### Help
 
 ```bash
-prate --help
+outlier --help
 ```
 
 ## Building
@@ -137,13 +137,13 @@ cargo run -- -v 1,2,3,4,5
 
 ```bash
 # Build the image
-docker build -t prate:latest .
+docker build -t outlier:latest .
 
 # Run with CLI values
-docker run --rm prate:latest -v 1,2,3,4,5,6,7,8,9,10 -p 95
+docker run --rm outlier:latest -v 1,2,3,4,5,6,7,8,9,10 -p 95
 
 # Run with a file (mount the examples directory)
-docker run --rm -v $(pwd)/examples:/data prate:latest -f /data/sample.json -p 99
+docker run --rm -v $(pwd)/examples:/data outlier:latest -f /data/sample.json -p 99
 ```
 
 ## Testing
@@ -176,16 +176,16 @@ cargo test test_calculate_percentile_95th
 
 ```bash
 # Calculate P50 (median) from CLI values
-prate -p 50 -v 10,20,30,40,50
+outlier -p 50 -v 10,20,30,40,50
 
 # Calculate P99 from JSON file
-prate -p 99 -f data.json
+outlier -p 99 -f data.json
 
 # Calculate P95 from CSV file
-prate -p 95 -f data.csv
+outlier -p 95 -f data.csv
 
 # Calculate default P95 from response times
-prate -v 100,200,300,400,500,600,700,800,900,1000
+outlier -v 100,200,300,400,500,600,700,800,900,1000
 ```
 
 ## How Percentiles Work

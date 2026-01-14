@@ -1,7 +1,7 @@
 .PHONY: build test clean run install help docker-build docker-run release
 
-BINARY_NAME=prate
-DOCKER_IMAGE=prate:latest
+BINARY_NAME=outlier
+DOCKER_IMAGE=outlier:latest
 
 help:
 	@echo "Available targets:"

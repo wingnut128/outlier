@@ -1,7 +1,7 @@
 # Build stage
 FROM rust:1.92 AS builder
 
-WORKDIR /usr/src/prate
+WORKDIR /usr/src/outlier
 
 # Copy manifests
 COPY Cargo.toml ./
@@ -21,8 +21,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the binary from builder
-COPY --from=builder /usr/src/prate/target/release/prate /usr/local/bin/prate
+COPY --from=builder /usr/src/outlier/target/release/outlier /usr/local/bin/outlier
 
 # Set the entrypoint
-ENTRYPOINT ["prate"]
+ENTRYPOINT ["outlier"]
 CMD ["--help"]

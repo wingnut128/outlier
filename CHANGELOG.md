@@ -7,14 +7,17 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Version flag support (`--version` / `-V`)
 - CHANGELOG.md for tracking changes
+- cargo-release configuration for automated version management
+- RELEASING.md with comprehensive release documentation
 
 ### Changed
 - Updated CLI description from "performance rates" to "percentiles from numerical datasets"
+- Renamed project from "prate" to "outlier"
 
 ## [0.1.0] - 2026-01-14
 
 ### Added
-- Initial release of prate (Percentile Calculator)
+- Initial release of outlier (Percentile Calculator)
 - Percentile calculation using linear interpolation
 - Support for JSON file input (array of numbers)
 - Support for CSV file input (single column with header)
