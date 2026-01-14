@@ -1,20 +1,25 @@
-# prate - Performance Rate Calculator
+# prate - Percentile Calculator
 
-A fast and efficient command-line tool for calculating percentiles (performance rates) from input values.
+[![CI](https://github.com/wingnut128/prate/actions/workflows/ci.yml/badge.svg)](https://github.com/wingnut128/prate/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/wingnut128/prate/actions/workflows/codeql.yml/badge.svg)](https://github.com/wingnut128/prate/actions/workflows/codeql.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+A fast and efficient command-line tool for calculating percentiles from numerical datasets. Percentiles are statistical measures that indicate the value below which a given percentage of observations fall in a distribution. Commonly used for analyzing performance metrics, response times, system latencies, and other data distributions.
 
 > 🤖 **Generated with [Claude Code](https://claude.com/claude-code)**
 > This project was created using Claude Code, an AI-powered CLI tool for software development.
 
 ## Features
 
-- Calculate any percentile (P50, P95, P99, etc.) from a dataset
+- Calculate any percentile (P50/median, P95, P99, etc.) from a dataset
 - Multiple input methods:
-  - JSON files
-  - CSV files
-  - Direct CLI values
-- Comprehensive unit tests
-- Docker support
-- Easy build with Makefile
+  - JSON files (array of numbers)
+  - CSV files (single column of values)
+  - Direct CLI values (comma-separated)
+- Linear interpolation for accurate percentile calculation
+- Comprehensive unit tests with 100% coverage
+- Docker support for containerized environments
+- Makefile for convenient build automation
 
 ## Installation
 
@@ -47,6 +52,12 @@ Calculate the 95th percentile (default) from CLI values:
 prate -v 1,2,3,4,5,6,7,8,9,10
 ```
 
+Output:
+```
+Number of values: 10
+Percentile (P95): 9.55
+```
+
 ### Specify Percentile
 
 Calculate the 99th percentile:
@@ -60,7 +71,7 @@ prate -p 99 -v 1,2,3,4,5,6,7,8,9,10
 prate -p 95 -f examples/sample.json
 ```
 
-Example JSON format:
+Example JSON format (array of numbers):
 ```json
 [1.5, 2.3, 4.7, 8.1, 12.5, 15.9, 23.4, 34.6, 45.2, 67.8]
 ```
@@ -71,7 +82,7 @@ Example JSON format:
 prate -p 99 -f examples/sample.csv
 ```
 
-Example CSV format:
+Example CSV format (header row "value", one value per line):
 ```csv
 value
 1.5
@@ -94,7 +105,7 @@ prate --help
 # Build debug version
 make build
 
-# Build release version
+# Build release version (optimized)
 make release
 
 # Run tests
@@ -110,7 +121,7 @@ make help
 ### Using Cargo
 
 ```bash
-# Build
+# Build release version
 cargo build --release
 
 # Run tests
@@ -131,13 +142,17 @@ docker build -t prate:latest .
 # Run with CLI values
 docker run --rm prate:latest -v 1,2,3,4,5,6,7,8,9,10 -p 95
 
-# Run with a file (mount the file)
+# Run with a file (mount the examples directory)
 docker run --rm -v $(pwd)/examples:/data prate:latest -f /data/sample.json -p 99
 ```
 
 ## Testing
 
-The project includes comprehensive unit tests:
+The project includes comprehensive unit tests covering:
+- Various percentile values (P0, P50, P95, P99, P100)
+- Edge cases (empty datasets, single values, duplicates)
+- Unsorted input handling
+- Large datasets (1000+ values)
 
 ```bash
 # Run all tests
@@ -153,8 +168,8 @@ cargo test test_calculate_percentile_95th
 ## Command-Line Options
 
 - `-p, --percentile <VALUE>`: Percentile to calculate (0-100). Default: 95
-- `-f, --file <PATH>`: Input file (JSON or CSV format)
-- `-v, --values <VALUES>`: Comma-separated values from command line
+- `-f, --file <PATH>`: Input file path (JSON or CSV format)
+- `-v, --values <VALUES>`: Comma-separated numerical values
 - `-h, --help`: Print help information
 
 ## Examples
@@ -169,10 +184,31 @@ prate -p 99 -f data.json
 # Calculate P95 from CSV file
 prate -p 95 -f data.csv
 
-# Default P95 calculation
+# Calculate default P95 from response times
 prate -v 100,200,300,400,500,600,700,800,900,1000
 ```
 
+## How Percentiles Work
+
+The tool uses linear interpolation to calculate percentiles accurately. For a given percentile P:
+
+1. Values are sorted in ascending order
+2. The position is calculated as: `(P/100) × (N-1)` where N is the count of values
+3. If the position falls between two values, linear interpolation is used to determine the result
+
+For example, P95 of [1,2,3,4,5,6,7,8,9,10]:
+- Position = 0.95 × 9 = 8.55
+- Result = linear interpolation between values at index 8 (9) and index 9 (10)
+- P95 = 9.55
+
+## Use Cases
+
+- **Performance Analysis**: Analyze API response times, database query latencies
+- **System Monitoring**: Calculate resource usage percentiles (CPU, memory, disk I/O)
+- **SLA Compliance**: Verify service level agreements (e.g., 95% of requests < 200ms)
+- **Data Analysis**: General statistical analysis of any numerical distribution
+- **Benchmarking**: Evaluate system performance under various conditions
+
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) file for details.
