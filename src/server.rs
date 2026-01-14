@@ -1,9 +1,9 @@
 use axum::{
+    Json, Router,
     extract::Multipart,
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
-    Json, Router,
 };
 use serde_json::json;
 use std::net::SocketAddr;
@@ -13,7 +13,10 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use outlier::{calculate_percentile, read_values_from_bytes, CalculateRequest, CalculateResponse, ErrorResponse};
+use outlier::{
+    CalculateRequest, CalculateResponse, ErrorResponse, calculate_percentile,
+    read_values_from_bytes,
+};
 
 #[derive(OpenApi)]
 #[openapi(
@@ -118,7 +121,10 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
                 percentile = p;
             }
         } else if name == "file" {
-            let filename = field.file_name().map(|s| s.to_string()).unwrap_or_else(|| "data.json".to_string());
+            let filename = field
+                .file_name()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "data.json".to_string());
             if let Ok(bytes) = field.bytes().await {
                 file_data = Some((filename, bytes.to_vec()));
             }
@@ -126,8 +132,11 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
     }
 
     // Validate we have file data
-    let (filename, data) = file_data
-        .ok_or_else(|| AppError(anyhow::anyhow!("No file provided. Send a file field with your data.")))?;
+    let (filename, data) = file_data.ok_or_else(|| {
+        AppError(anyhow::anyhow!(
+            "No file provided. Send a file field with your data."
+        ))
+    })?;
 
     // Parse and calculate
     let values = read_values_from_bytes(&data, &filename)?;
