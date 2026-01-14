@@ -2,6 +2,9 @@
 
 A fast and efficient command-line tool for calculating percentiles (performance rates) from input values.
 
+> 🤖 **Generated with [Claude Code](https://claude.com/claude-code)**
+> This project was created using Claude Code, an AI-powered CLI tool for software development.
+
 ## Features
 
 - Calculate any percentile (P50, P95, P99, etc.) from a dataset
