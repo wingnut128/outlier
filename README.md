@@ -209,6 +209,22 @@ For example, P95 of [1,2,3,4,5,6,7,8,9,10]:
 - **Data Analysis**: General statistical analysis of any numerical distribution
 - **Benchmarking**: Evaluate system performance under various conditions
 
+## Releasing
+
+This project uses [cargo-release](https://github.com/crate-ci/cargo-release) for version management. To create a new release:
+
+```bash
+# Preview the release (dry run is default)
+cargo release patch    # 0.1.0 → 0.1.1
+cargo release minor    # 0.1.0 → 0.2.0
+cargo release major    # 0.1.0 → 1.0.0
+
+# Execute the release
+cargo release patch --execute
+```
+
+See [RELEASING.md](RELEASING.md) for detailed instructions.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
