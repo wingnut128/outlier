@@ -7,7 +7,8 @@ use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
 #[command(name = "prate")]
-#[command(about = "Calculate performance rates (percentiles) from input values", long_about = None)]
+#[command(version)]
+#[command(about = "Calculate percentiles from numerical datasets", long_about = None)]
 struct Args {
     /// Percentile to calculate (e.g., 95, 99)
     #[arg(short = 'p', long, default_value = "95")]
