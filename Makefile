@@ -15,10 +15,10 @@ help:
 	@echo "  docker-run    - Run Docker container"
 
 build:
-	cargo build
+	cargo build --features server
 
 release:
-	cargo build --release
+	cargo build --release --features server
 
 test:
 	cargo test
