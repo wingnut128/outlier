@@ -112,10 +112,10 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
         let name = field.name().map(|s| s.to_string()).unwrap_or_default();
 
         if name == "percentile" {
-            if let Ok(text) = field.text().await {
-                if let Ok(p) = text.parse::<f64>() {
-                    percentile = p;
-                }
+            if let Ok(text) = field.text().await
+                && let Ok(p) = text.parse::<f64>()
+            {
+                percentile = p;
             }
         } else if name == "file" {
             let filename = field.file_name().map(|s| s.to_string()).unwrap_or_else(|| "data.json".to_string());
