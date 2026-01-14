@@ -97,6 +97,85 @@ value
 outlier --help
 ```
 
+## API Server Mode
+
+outlier can run as an HTTP API server with OpenAPI/Swagger documentation.
+
+### Starting the Server
+
+```bash
+# Start server on default port 3000
+cargo run --features server -- --serve
+
+# Or use the compiled binary
+outlier --serve
+
+# Specify a custom port
+outlier --serve --port 8080
+```
+
+The server provides:
+- 🚀 REST API endpoints at `http://localhost:3000`
+- 📚 Interactive Swagger UI at `http://localhost:3000/docs`
+- 📖 OpenAPI spec at `http://localhost:3000/api-docs/openapi.json`
+
+### API Endpoints
+
+#### POST /calculate
+Calculate percentile from JSON array:
+
+```bash
+curl -X POST http://localhost:3000/calculate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    "percentile": 95
+  }'
+```
+
+Response:
+```json
+{
+  "count": 10,
+  "percentile": 95.0,
+  "result": 9.55
+}
+```
+
+#### POST /calculate/file
+Upload a file (JSON or CSV) for calculation:
+
+```bash
+curl -X POST http://localhost:3000/calculate/file \
+  -F "file=@data.json" \
+  -F "percentile=99"
+```
+
+Response:
+```json
+{
+  "count": 100,
+  "percentile": 99.0,
+  "result": 98.01
+}
+```
+
+#### GET /health
+Health check endpoint:
+
+```bash
+curl http://localhost:3000/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "service": "outlier",
+  "version": "0.1.0"
+}
+```
+
 ## Building
 
 ### Using Makefile

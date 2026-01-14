@@ -9,10 +9,19 @@ All notable changes to this project will be documented in this file.
 - CHANGELOG.md for tracking changes
 - cargo-release configuration for automated version management
 - RELEASING.md with comprehensive release documentation
+- **API Server Mode**: Run outlier as an HTTP REST API with `--serve` flag
+- **OpenAPI/Swagger Documentation**: Interactive API docs at `/docs` endpoint
+- **POST /calculate**: Calculate percentiles from JSON request body
+- **POST /calculate/file**: Upload and process JSON/CSV files via multipart form
+- **GET /health**: Health check endpoint for monitoring
+- Library module (`lib.rs`) with reusable percentile functions
+- Optional server feature flag to keep CLI binary lightweight
+- Axum-based web server with CORS and tracing support
 
 ### Changed
 - Updated CLI description from "performance rates" to "percentiles from numerical datasets"
 - Renamed project from "prate" to "outlier"
+- Refactored core logic into library for reusability
 
 ## [0.1.0] - 2026-01-14
 
