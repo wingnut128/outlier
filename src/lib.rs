@@ -132,7 +132,7 @@ pub fn read_csv_file(path: &Path) -> Result<Vec<f64>> {
 
 /// Parse values from bytes (JSON or CSV)
 pub fn read_values_from_bytes(bytes: &[u8], filename: &str) -> Result<Vec<f64>> {
-    let extension = filename.split('.').last().unwrap_or("");
+    let extension = filename.split('.').next_back().unwrap_or("");
 
     match extension.to_lowercase().as_str() {
         "json" => {
