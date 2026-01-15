@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-01-15
+
 ### Added
 - **Volume Test Script**: `examples/volume_test.rs` for benchmarking with 1 million values
   - Tests 95th and 90th percentile calculations
