@@ -16,9 +16,9 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 opentelemetry = "0.27"
 opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.27", features = ["tonic"] }
+opentelemetry-otlp = { version = "0.27", features = ["tonic", "tls-roots"] }
 tracing-opentelemetry = "0.28"
-tonic = "0.12"
+tonic = { version = "0.12", features = ["tls-roots"] }
 
 # Web server dependencies
 axum = { version = "0.7", features = ["multipart"], optional = true }

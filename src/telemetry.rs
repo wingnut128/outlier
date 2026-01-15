@@ -1,7 +1,8 @@
 use opentelemetry::trace::TracerProvider;
 use opentelemetry::{KeyValue, StringValue};
-use opentelemetry_otlp::{WithExportConfig, WithTonicConfig};
+use opentelemetry_otlp::{Protocol, WithExportConfig, WithTonicConfig};
 use opentelemetry_sdk::{Resource, runtime, trace as sdktrace};
+use tonic::transport::ClientTlsConfig;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 const HONEYCOMB_ENDPOINT: &str = "https://api.honeycomb.io:443";
@@ -23,10 +24,14 @@ pub fn init_telemetry() {
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
 
     if let Some(api_key) = api_key {
-        // Configure OTLP exporter for Honeycomb
+        // Configure OTLP exporter for Honeycomb with TLS
+        let tls_config = ClientTlsConfig::new().with_native_roots();
+
         let exporter = opentelemetry_otlp::SpanExporter::builder()
             .with_tonic()
+            .with_protocol(Protocol::Grpc)
             .with_endpoint(HONEYCOMB_ENDPOINT)
+            .with_tls_config(tls_config)
             .with_metadata({
                 let mut metadata = tonic::metadata::MetadataMap::new();
                 metadata.insert(
