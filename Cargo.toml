@@ -13,7 +13,8 @@ anyhow = "1.0"
 # Telemetry dependencies (Honeycomb via OpenTelemetry)
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
 opentelemetry = "0.27"
 opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.27", features = ["tonic", "tls-roots"] }
@@ -26,13 +27,16 @@ bytes = { version = "1", optional = true }
 tower = { version = "0.5", optional = true }
 tower-http = { version = "0.6", features = ["cors", "trace"], optional = true }
 
+# Configuration
+toml = { version = "0.8", optional = true }
+
 # OpenAPI/Swagger dependencies
 utoipa = { version = "5", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "8", features = ["axum"], optional = true }
 
 [features]
 default = []
-server = ["axum", "bytes", "tower", "tower-http", "utoipa", "utoipa-swagger-ui"]
+server = ["axum", "bytes", "tower", "tower-http", "toml", "utoipa", "utoipa-swagger-ui"]
 
 [dev-dependencies]
 reqwest = { version = "0.12", features = ["json"] }

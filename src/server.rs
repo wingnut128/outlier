@@ -13,6 +13,7 @@ use tracing::info;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
+use crate::config::{Config, LogFormat, LogOutput};
 use outlier::{
     CalculateRequest, CalculateResponse, ErrorResponse, calculate_percentile,
     read_values_from_bytes,
@@ -169,8 +170,111 @@ async fn health() -> Json<serde_json::Value> {
     }))
 }
 
+/// Initialize logging based on configuration
+fn init_logging(config: &Config) -> anyhow::Result<Option<tracing_appender::non_blocking::WorkerGuard>> {
+    let level = config.logging.level.as_tracing_level();
+
+    match &config.logging.output {
+        LogOutput::File(path) => {
+            let file = std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)
+                .map_err(|e| anyhow::anyhow!("Failed to open log file '{}': {}", path.display(), e))?;
+            let (non_blocking, guard) = tracing_appender::non_blocking(file);
+
+            match config.logging.format {
+                LogFormat::Json => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(non_blocking)
+                        .json()
+                        .init();
+                }
+                LogFormat::Pretty => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(non_blocking)
+                        .pretty()
+                        .init();
+                }
+                LogFormat::Compact => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(non_blocking)
+                        .compact()
+                        .init();
+                }
+            }
+            Ok(Some(guard))
+        }
+        LogOutput::Stdout => {
+            match config.logging.format {
+                LogFormat::Json => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(std::io::stdout)
+                        .json()
+                        .init();
+                }
+                LogFormat::Pretty => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .pretty()
+                        .init();
+                }
+                LogFormat::Compact => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .compact()
+                        .init();
+                }
+            }
+            Ok(None)
+        }
+        LogOutput::Stderr => {
+            match config.logging.format {
+                LogFormat::Json => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(std::io::stderr)
+                        .json()
+                        .init();
+                }
+                LogFormat::Pretty => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(std::io::stderr)
+                        .pretty()
+                        .init();
+                }
+                LogFormat::Compact => {
+                    tracing_subscriber::fmt()
+                        .with_target(false)
+                        .with_max_level(level)
+                        .with_writer(std::io::stderr)
+                        .compact()
+                        .init();
+                }
+            }
+            Ok(None)
+        }
+    }
+}
+
 /// Start the API server
-pub async fn serve(port: u16) -> anyhow::Result<()> {
+pub async fn serve(config: Config) -> anyhow::Result<()> {
+    // Initialize tracing - keep guard alive for file logging
+    let _guard = init_logging(&config)?;
+
     // Create router with all endpoints
     // 100MB body limit to support large datasets (1M+ values)
     let app = Router::new()
@@ -187,7 +291,7 @@ pub async fn serve(port: u16) -> anyhow::Result<()> {
         )
         .layer(TraceLayer::new_for_http());
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    let addr = SocketAddr::new(config.server.bind_ip, config.server.port);
     info!("🚀 Outlier API server listening on http://{}", addr);
     info!("📚 API documentation available at http://{}/docs", addr);
 

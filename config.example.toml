@@ -1,0 +1,21 @@
+# Outlier Configuration File
+#
+# This is an example configuration file for the Outlier API server.
+# Copy this file and customize the values as needed.
+
+[logging]
+# Log level: trace, debug, info, warn, error
+level = "info"
+
+# Log output: stdout, stderr, or a file path
+output = "stdout"
+
+# Log format: compact, pretty, json
+format = "compact"
+
+[server]
+# Port to listen on
+port = 3000
+
+# IP address to bind to (0.0.0.0 for all interfaces)
+bind_ip = "0.0.0.0"

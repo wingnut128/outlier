@@ -5,6 +5,8 @@ use std::path::PathBuf;
 mod telemetry;
 
 #[cfg(feature = "server")]
+mod config;
+#[cfg(feature = "server")]
 mod server;
 
 #[derive(Parser, Debug)]
@@ -17,10 +19,16 @@ struct Args {
     #[arg(long)]
     serve: bool,
 
-    /// Port for API server (only with --serve)
+    /// Path to configuration file (TOML format)
+    /// Can also be set via CONFIG_FILE environment variable
     #[cfg(feature = "server")]
-    #[arg(long, default_value = "3000")]
-    port: u16,
+    #[arg(short = 'c', long = "config")]
+    config_file: Option<PathBuf>,
+
+    /// Port for API server (only with --serve, overrides config file)
+    #[cfg(feature = "server")]
+    #[arg(long)]
+    port: Option<u16>,
 
     /// Percentile to calculate (e.g., 95, 99)
     #[arg(short = 'p', long, default_value = "95")]
@@ -56,8 +64,16 @@ async fn main() -> Result<()> {
 
     #[cfg(feature = "server")]
     if args.serve {
+        // Load configuration
+        let mut config = config::Config::load(args.config_file.as_ref())?;
+
+        // CLI port overrides config file
+        if let Some(port) = args.port {
+            config.server.port = port;
+        }
+
         // Start API server
-        let result = server::serve(args.port).await;
+        let result = server::serve(config).await;
         telemetry::shutdown_telemetry();
         return result;
     }
