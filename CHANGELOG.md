@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Honeycomb.io Observability**: Distributed tracing via OpenTelemetry OTLP exporter
+- Telemetry module (`telemetry.rs`) for initializing tracing pipeline
+- Instrumentation spans for core functions (`calculate_percentile`, `read_values_from_file`, `read_values_from_bytes`)
+- Instrumentation spans for HTTP handlers (`calculate`, `calculate_file`, `health`)
+- Environment variable configuration:
+  - `HONEYCOMB_API_KEY`: API key for Honeycomb (falls back to console logging if unset)
+  - `OTEL_SERVICE_NAME`: Service name (defaults to "outlier")
+
+### Changed
+- Tracing now enabled for both CLI and server modes
+- Tokio runtime now a core dependency (required for async OTLP exporter)
+
 ## [0.1.5] - 2026-01-14
 
 ## [0.1.4] - 2026-01-14
