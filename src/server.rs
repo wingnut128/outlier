@@ -1,6 +1,6 @@
 use axum::{
     Json, Router,
-    extract::Multipart,
+    extract::{DefaultBodyLimit, Multipart},
     http::StatusCode,
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -172,11 +172,13 @@ async fn health() -> Json<serde_json::Value> {
 /// Start the API server
 pub async fn serve(port: u16) -> anyhow::Result<()> {
     // Create router with all endpoints
+    // 100MB body limit to support large datasets (1M+ values)
     let app = Router::new()
         .route("/calculate", post(calculate))
         .route("/calculate/file", post(calculate_file))
         .route("/health", get(health))
         .merge(SwaggerUi::new("/docs").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .layer(DefaultBodyLimit::max(100 * 1024 * 1024))
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)

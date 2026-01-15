@@ -34,6 +34,9 @@ utoipa-swagger-ui = { version = "8", features = ["axum"], optional = true }
 default = []
 server = ["axum", "bytes", "tower", "tower-http", "utoipa", "utoipa-swagger-ui"]
 
+[dev-dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+
 [package.metadata.release]
 # Don't publish to crates.io (this is a standalone tool)
 publish = false

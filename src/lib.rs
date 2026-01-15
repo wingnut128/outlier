@@ -31,7 +31,7 @@ fn default_percentile() -> f64 {
 
 /// Response structure for calculate API endpoint
 #[cfg_attr(feature = "server", derive(ToSchema))]
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CalculateResponse {
     /// Number of values in the dataset
     pub count: usize,
