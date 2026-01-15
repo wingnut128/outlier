@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Volume Test Script**: `examples/volume_test.rs` for benchmarking with 1 million values
+  - Tests 95th and 90th percentile calculations
+  - Supports both direct library tests and HTTP API endpoint tests
+  - Run with `cargo run --example volume_test` (library only) or `--with-api` flag for API tests
+- `reqwest` dev-dependency for HTTP API testing
+
+### Changed
+- Increased server body limit from 2MB to 100MB to support large datasets (1M+ values)
+- Added `Deserialize` derive to `CalculateResponse` for API response parsing
+
 ## [0.2.0] - 2026-01-15
 
 ### Added
