@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-01-15
+
 ### Added
 - **Honeycomb.io Observability**: Distributed tracing via OpenTelemetry OTLP exporter
 - Telemetry module (`telemetry.rs`) for initializing tracing pipeline
