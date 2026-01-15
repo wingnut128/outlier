@@ -2,6 +2,8 @@ use anyhow::Result;
 use clap::Parser;
 use std::path::PathBuf;
 
+mod telemetry;
+
 #[cfg(feature = "server")]
 mod server;
 
@@ -33,27 +35,28 @@ struct Args {
     values: Option<Vec<f64>>,
 }
 
-#[cfg(feature = "server")]
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Initialize Honeycomb telemetry
+    telemetry::init_telemetry();
+
     let args = Args::parse();
 
+    #[cfg(feature = "server")]
     if args.serve {
         // Start API server
-        server::serve(args.port).await?;
-        return Ok(());
+        let result = server::serve(args.port).await;
+        telemetry::shutdown_telemetry();
+        return result;
     }
 
     // Run CLI mode
-    run_cli(args)
+    let result = run_cli(args);
+    telemetry::shutdown_telemetry();
+    result
 }
 
-#[cfg(not(feature = "server"))]
-fn main() -> Result<()> {
-    let args = Args::parse();
-    run_cli(args)
-}
-
+#[tracing::instrument(skip_all, fields(percentile = %args.percentile))]
 fn run_cli(args: Args) -> Result<()> {
     use outlier::{calculate_percentile, read_values_from_file};
 
@@ -63,8 +66,8 @@ fn run_cli(args: Args) -> Result<()> {
     }
 
     // Collect values from either file or CLI
-    let values = if let Some(file_path) = args.file {
-        read_values_from_file(&file_path)?
+    let values = if let Some(ref file_path) = args.file {
+        read_values_from_file(file_path)?
     } else if let Some(values) = args.values {
         values
     } else {

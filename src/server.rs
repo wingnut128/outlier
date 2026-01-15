@@ -79,6 +79,7 @@ where
     ),
     tag = "outlier"
 )]
+#[tracing::instrument(skip(payload), fields(percentile = %payload.percentile, value_count = %payload.values.len()))]
 async fn calculate(
     Json(payload): Json<CalculateRequest>,
 ) -> Result<Json<CalculateResponse>, AppError> {
@@ -106,6 +107,7 @@ async fn calculate(
     ),
     tag = "outlier"
 )]
+#[tracing::instrument(skip(multipart))]
 async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateResponse>, AppError> {
     let mut percentile = 95.0;
     let mut file_data: Option<(String, Vec<u8>)> = None;
@@ -158,6 +160,7 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
     ),
     tag = "outlier"
 )]
+#[tracing::instrument]
 async fn health() -> Json<serde_json::Value> {
     Json(json!({
         "status": "healthy",
@@ -168,12 +171,6 @@ async fn health() -> Json<serde_json::Value> {
 
 /// Start the API server
 pub async fn serve(port: u16) -> anyhow::Result<()> {
-    // Initialize tracing
-    tracing_subscriber::fmt()
-        .with_target(false)
-        .compact()
-        .init();
-
     // Create router with all endpoints
     let app = Router::new()
         .route("/calculate", post(calculate))

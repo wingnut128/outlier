@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+use tracing::instrument;
 
 #[cfg(feature = "server")]
 use utoipa::ToSchema;
@@ -69,6 +70,7 @@ pub struct ErrorResponse {
 /// let p50 = calculate_percentile(&values, 50.0).unwrap();
 /// assert_eq!(p50, 3.0);
 /// ```
+#[instrument(skip(values), fields(value_count = values.len(), percentile = %percentile))]
 pub fn calculate_percentile(values: &[f64], percentile: f64) -> Result<f64> {
     if values.is_empty() {
         anyhow::bail!("Cannot calculate percentile of empty dataset");
@@ -94,6 +96,7 @@ pub fn calculate_percentile(values: &[f64], percentile: f64) -> Result<f64> {
 }
 
 /// Read values from a file (JSON or CSV format)
+#[instrument(fields(path = %path.display()))]
 pub fn read_values_from_file(path: &Path) -> Result<Vec<f64>> {
     let extension = path
         .extension()
@@ -131,6 +134,7 @@ pub fn read_csv_file(path: &Path) -> Result<Vec<f64>> {
 }
 
 /// Parse values from bytes (JSON or CSV)
+#[instrument(skip(bytes), fields(filename = %filename, byte_count = bytes.len()))]
 pub fn read_values_from_bytes(bytes: &[u8], filename: &str) -> Result<Vec<f64>> {
     let extension = filename.split('.').next_back().unwrap_or("");
 
