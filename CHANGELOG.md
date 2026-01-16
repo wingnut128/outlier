@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-01-16
+
 ### Added
 - **TOML Configuration File Support**: Server mode now accepts configuration files
   - `--config` / `-c` CLI flag for specifying config file path
