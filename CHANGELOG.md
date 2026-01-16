@@ -6,8 +6,6 @@ All notable changes to this project will be documented in this file.
 
 ## [0.2.3] - 2026-01-16
 
-## [0.2.3] - 2026-01-16
-
 ### Added
 - **README Documentation**: Added missing documentation for recent features
   - Observability section with Honeycomb/OpenTelemetry configuration
