@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed cargo-release tag naming to use `v0.2.x` instead of `vv0.2.x`
+- Fixed duplicate changelog entries by letting cargo-release manage version headers
+
 ## [0.2.4] - 2026-01-16
 
 ### Changed

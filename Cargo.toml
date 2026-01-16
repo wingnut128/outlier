@@ -44,8 +44,8 @@ publish = false
 push = true
 # Create and push git tag
 tag = true
-# Tag prefix
-tag-prefix = "v"
+# Tag name pattern (default includes extra "v", so we override)
+tag-name = "v{{version}}"
 # Sign tags
 sign-tag = false
 # Pre-release replacements in CHANGELOG.md
