@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-01-16
+
+### Added
+- **README Documentation**: Added missing documentation for recent features
+  - Observability section with Honeycomb/OpenTelemetry configuration
+  - Volume testing section with `--count`, `--with-api`, and `--api-url` options
+
+### Changed
+- Updated health endpoint version example in README
+
 ## [0.2.2] - 2026-01-16
 
 ### Added

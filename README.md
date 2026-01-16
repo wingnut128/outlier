@@ -172,9 +172,35 @@ Response:
 {
   "status": "healthy",
   "service": "outlier",
-  "version": "0.1.0"
+  "version": "0.2.3"
 }
 ```
+
+## Observability
+
+outlier supports distributed tracing via OpenTelemetry, with built-in support for [Honeycomb.io](https://honeycomb.io).
+
+### Configuration
+
+Set the following environment variables to enable tracing:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `HONEYCOMB_API_KEY` | Your Honeycomb API key | (none - falls back to console logging) |
+| `OTEL_SERVICE_NAME` | Service name for traces | `outlier` |
+
+### Example
+
+```bash
+# Enable Honeycomb tracing
+export HONEYCOMB_API_KEY="your-api-key"
+export OTEL_SERVICE_NAME="outlier-production"
+
+# Start the server with tracing enabled
+outlier --serve
+```
+
+When `HONEYCOMB_API_KEY` is not set, tracing output falls back to console logging.
 
 ## Building
 
@@ -243,6 +269,29 @@ cargo test -- --nocapture
 # Run a specific test
 cargo test test_calculate_percentile_95th
 ```
+
+### Volume Testing
+
+A volume test script is included for benchmarking with large datasets:
+
+```bash
+# Run with default 1 million values
+cargo run --example volume_test
+
+# Run with custom value count
+cargo run --example volume_test -- --count 500000
+
+# Include API endpoint tests (start server first)
+cargo run --example volume_test -- --with-api
+
+# Use custom API URL
+cargo run --example volume_test -- --with-api --api-url http://localhost:8080
+```
+
+The volume test measures:
+- Value generation time
+- Percentile calculation throughput (values/sec)
+- Library vs API result consistency
 
 ## Command-Line Options
 
