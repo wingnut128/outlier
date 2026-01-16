@@ -37,7 +37,19 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize Honeycomb telemetry
+    // Quick exit for --version/--help or no args - no telemetry initialization needed
+    let args_count = std::env::args().count();
+    if args_count == 1
+        || std::env::args().any(|a| a == "-V" || a == "--version" || a == "-h" || a == "--help")
+    {
+        if args_count == 1 {
+            // No arguments provided - show help
+            Args::parse_from(["outlier", "--help"]);
+        }
+        Args::parse(); // Prints version/help and exits
+    }
+
+    // Initialize Honeycomb telemetry only for actual operations
     telemetry::init_telemetry();
 
     let args = Args::parse();

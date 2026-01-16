@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-01-16
+
+### Changed
+- Skip telemetry initialization for `--version`/`-V` and `--help`/`-h` flags for faster startup
+- Display help by default when running `outlier` without any arguments
+
 ## [0.2.3] - 2026-01-16
 
 ### Added
