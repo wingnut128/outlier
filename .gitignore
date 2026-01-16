@@ -20,3 +20,6 @@
 
 # Mac
 .DS_Store
+
+# Local templates
+SPEC_TEMPLATE.md
