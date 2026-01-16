@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-01-16
+
+### Added
+- **Volume Test `--count` Argument**: Configurable value count for volume testing
+  - Run with `cargo run --example volume_test -- --count 100000` for custom counts
+  - Defaults to 1,000,000 values for backwards compatibility
+
 ## [0.2.1] - 2026-01-15
 
 ### Added
