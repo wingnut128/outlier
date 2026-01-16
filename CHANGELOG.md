@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-01-16
+
 ### Added
 - SECURITY.md with GitHub private vulnerability reporting for security disclosures
 
