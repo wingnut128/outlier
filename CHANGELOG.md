@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Additional example configuration files for different deployment scenarios:
+  - `config.production.toml`: Production setup with JSON logging to file, localhost binding, port 8080
+  - `config.development.toml`: Development setup with debug logging and pretty format, port 3000
+  - `config.minimal.toml`: Minimal configuration demonstrating defaults override
+
 ## [0.3.0] - 2026-01-16
 
 ### Added
