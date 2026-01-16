@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **TOML Configuration File Support**: Server mode now accepts configuration files
+  - `--config` / `-c` CLI flag for specifying config file path
+  - `CONFIG_FILE` environment variable support
+  - Configurable logging: level (trace/debug/info/warn/error), output (stdout/stderr/file), format (compact/pretty/json)
+  - Configurable server: port and bind IP address
+  - CLI flags override config file settings
+  - Example configuration file (`config.example.toml`)
+  - Falls back to sensible defaults if no config file provided
+
 ## [0.2.6] - 2026-01-16
 
 ### Added
