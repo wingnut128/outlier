@@ -4,7 +4,8 @@
 //! 95th and 90th percentile thresholds.
 //!
 //! Run with:
-//!   cargo run --example volume_test                    # Library tests only
+//!   cargo run --example volume_test                    # Library tests only (1M values)
+//!   cargo run --example volume_test -- --count 100000  # Custom value count
 //!   cargo run --example volume_test -- --with-api      # Include API tests (start server first)
 //!   cargo run --example volume_test -- --api-url http://localhost:8080  # Custom API URL
 //!
@@ -14,7 +15,7 @@
 use outlier::{CalculateRequest, CalculateResponse, calculate_percentile};
 use std::time::Instant;
 
-const NUM_VALUES: usize = 1_000_000;
+const DEFAULT_NUM_VALUES: usize = 1_000_000;
 const DEFAULT_API_URL: &str = "http://localhost:3000";
 
 fn main() {
@@ -26,16 +27,22 @@ fn main() {
         .and_then(|i| args.get(i + 1))
         .map(|s| s.as_str())
         .unwrap_or(DEFAULT_API_URL);
+    let num_values = args
+        .iter()
+        .position(|a| a == "--count")
+        .and_then(|i| args.get(i + 1))
+        .and_then(|s| s.parse::<usize>().ok())
+        .unwrap_or(DEFAULT_NUM_VALUES);
 
     println!("=================================================");
-    println!("  Outlier Volume Test - 1 Million Values");
+    println!("  Outlier Volume Test - {} Values", num_values);
     println!("=================================================");
     println!();
 
-    // Generate 1 million random values using a simple LCG
-    println!("Generating {} values...", NUM_VALUES);
+    // Generate random values using a simple LCG
+    println!("Generating {} values...", num_values);
     let gen_start = Instant::now();
-    let values = generate_values(NUM_VALUES);
+    let values = generate_values(num_values);
     let gen_duration = gen_start.elapsed();
     println!("Generated {} values in {:?}", values.len(), gen_duration);
     println!();
