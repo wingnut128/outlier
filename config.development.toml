@@ -1,0 +1,24 @@
+# Development Configuration for Outlier API Server
+#
+# This configuration is optimized for local development with:
+# - Verbose logging for debugging
+# - Pretty format for readability
+# - All interfaces binding for testing from other devices
+# - Non-standard port to avoid conflicts
+
+[logging]
+# Debug level for detailed troubleshooting
+level = "debug"
+
+# Output to stdout for immediate visibility
+output = "stdout"
+
+# Pretty format for human-readable logs
+format = "pretty"
+
+[server]
+# Development port (avoids common conflicts)
+port = 3000
+
+# Bind to all interfaces for testing from mobile/other devices
+bind_ip = "0.0.0.0"

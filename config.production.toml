@@ -1,0 +1,24 @@
+# Production Configuration for Outlier API Server
+#
+# This configuration is optimized for production deployments with:
+# - File-based logging for persistence
+# - JSON format for structured log aggregation
+# - Restricted binding to localhost (use reverse proxy)
+# - Standard HTTP port
+
+[logging]
+# Production log level (info is recommended)
+level = "info"
+
+# Log to file for persistence and rotation
+output = "/var/log/outlier/outlier.log"
+
+# JSON format for log aggregation tools (ELK, Splunk, etc.)
+format = "json"
+
+[server]
+# Standard HTTP port (use reverse proxy for HTTPS)
+port = 8080
+
+# Bind to localhost only (nginx/caddy handles external traffic)
+bind_ip = "127.0.0.1"

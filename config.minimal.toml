@@ -1,0 +1,10 @@
+# Minimal Configuration for Outlier API Server
+#
+# Only override the port - all other settings use defaults:
+# - logging.level = "info"
+# - logging.output = "stdout"
+# - logging.format = "compact"
+# - server.bind_ip = "0.0.0.0"
+
+[server]
+port = 9000
