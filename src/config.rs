@@ -138,11 +138,13 @@ impl Config {
 
     /// Load configuration from a specific file
     fn load_from_file(path: &PathBuf) -> anyhow::Result<Self> {
-        let contents = std::fs::read_to_string(path)
-            .map_err(|e| anyhow::anyhow!("Failed to read config file '{}': {}", path.display(), e))?;
+        let contents = std::fs::read_to_string(path).map_err(|e| {
+            anyhow::anyhow!("Failed to read config file '{}': {}", path.display(), e)
+        })?;
 
-        let config: Config = toml::from_str(&contents)
-            .map_err(|e| anyhow::anyhow!("Failed to parse config file '{}': {}", path.display(), e))?;
+        let config: Config = toml::from_str(&contents).map_err(|e| {
+            anyhow::anyhow!("Failed to parse config file '{}': {}", path.display(), e)
+        })?;
 
         Ok(config)
     }
@@ -156,7 +158,10 @@ mod tests {
     fn test_default_config() {
         let config = Config::default();
         assert_eq!(config.server.port, 3000);
-        assert_eq!(config.server.bind_ip, IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0)));
+        assert_eq!(
+            config.server.bind_ip,
+            IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0))
+        );
         assert_eq!(config.logging.level, LogLevel::Info);
         assert_eq!(config.logging.format, LogFormat::Compact);
         assert_eq!(config.logging.output, LogOutput::Stdout);
@@ -176,7 +181,10 @@ bind_ip = "127.0.0.1"
 "#;
         let config: Config = toml::from_str(toml_str).unwrap();
         assert_eq!(config.server.port, 8080);
-        assert_eq!(config.server.bind_ip, IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)));
+        assert_eq!(
+            config.server.bind_ip,
+            IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1))
+        );
         assert_eq!(config.logging.level, LogLevel::Debug);
         assert_eq!(config.logging.format, LogFormat::Json);
         assert!(matches!(config.logging.output, LogOutput::File(_)));
@@ -191,7 +199,10 @@ port = 9000
         let config: Config = toml::from_str(toml_str).unwrap();
         assert_eq!(config.server.port, 9000);
         // Defaults should be applied
-        assert_eq!(config.server.bind_ip, IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0)));
+        assert_eq!(
+            config.server.bind_ip,
+            IpAddr::V4(std::net::Ipv4Addr::new(0, 0, 0, 0))
+        );
         assert_eq!(config.logging.level, LogLevel::Info);
     }
 

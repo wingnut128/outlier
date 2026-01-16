@@ -171,7 +171,9 @@ async fn health() -> Json<serde_json::Value> {
 }
 
 /// Initialize logging based on configuration
-fn init_logging(config: &Config) -> anyhow::Result<Option<tracing_appender::non_blocking::WorkerGuard>> {
+fn init_logging(
+    config: &Config,
+) -> anyhow::Result<Option<tracing_appender::non_blocking::WorkerGuard>> {
     let level = config.logging.level.as_tracing_level();
 
     match &config.logging.output {
@@ -180,7 +182,9 @@ fn init_logging(config: &Config) -> anyhow::Result<Option<tracing_appender::non_
                 .create(true)
                 .append(true)
                 .open(path)
-                .map_err(|e| anyhow::anyhow!("Failed to open log file '{}': {}", path.display(), e))?;
+                .map_err(|e| {
+                    anyhow::anyhow!("Failed to open log file '{}': {}", path.display(), e)
+                })?;
             let (non_blocking, guard) = tracing_appender::non_blocking(file);
 
             match config.logging.format {
