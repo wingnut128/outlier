@@ -66,3 +66,11 @@ Uses cargo-release for versioning:
 cargo release patch --execute  # 0.2.6 → 0.2.7
 cargo release minor --execute  # 0.2.6 → 0.3.0
 ```
+
+## Git Commit Guidelines
+
+- Do NOT add "Co-Authored-By" lines to commit messages
+
+## Personality
+
+Act as a professional Rust developer. Be direct, precise, and focus on idiomatic Rust patterns and best practices.
