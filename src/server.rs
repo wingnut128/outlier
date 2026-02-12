@@ -274,14 +274,9 @@ fn init_logging(
     }
 }
 
-/// Start the API server
-pub async fn serve(config: Config) -> anyhow::Result<()> {
-    // Initialize tracing - keep guard alive for file logging
-    let _guard = init_logging(&config)?;
-
-    // Create router with all endpoints
-    // 100MB body limit to support large datasets (1M+ values)
-    let app = Router::new()
+/// Build the application router with all endpoints and middleware
+fn build_app() -> Router {
+    Router::new()
         .route("/calculate", post(calculate))
         .route("/calculate/file", post(calculate_file))
         .route("/health", get(health))
@@ -293,7 +288,15 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
                 .allow_methods(Any)
                 .allow_headers(Any),
         )
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+}
+
+/// Start the API server
+pub async fn serve(config: Config) -> anyhow::Result<()> {
+    // Initialize tracing - keep guard alive for file logging
+    let _guard = init_logging(&config)?;
+
+    let app = build_app();
 
     let addr = SocketAddr::new(config.server.bind_ip, config.server.port);
     info!("🚀 Outlier API server listening on http://{}", addr);
@@ -303,4 +306,423 @@ pub async fn serve(config: Config) -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+    use axum::http::Request;
+    use http_body_util::BodyExt;
+    use tower::ServiceExt;
+
+    async fn response_json(response: Response) -> serde_json::Value {
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        serde_json::from_slice(&body).unwrap()
+    }
+
+    // --- GET /health ---
+
+    #[tokio::test]
+    async fn health_returns_200() {
+        let app = build_app();
+
+        let response = app
+            .oneshot(Request::get("/health").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["status"], "healthy");
+        assert_eq!(json["service"], "outlier");
+        assert!(json["version"].is_string());
+    }
+
+    // --- POST /calculate ---
+
+    #[tokio::test]
+    async fn calculate_returns_correct_percentile() {
+        let app = build_app();
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "percentile": 50.0
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["count"], 5);
+        assert_eq!(json["percentile"], 50.0);
+        assert_eq!(json["result"], 3.0);
+    }
+
+    #[tokio::test]
+    async fn calculate_defaults_to_95th_percentile() {
+        let app = build_app();
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["percentile"], 95.0);
+    }
+
+    #[tokio::test]
+    async fn calculate_empty_values_returns_400() {
+        let app = build_app();
+
+        let body = serde_json::json!({
+            "values": [],
+            "percentile": 50.0
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let json = response_json(response).await;
+        assert!(json["error"].as_str().unwrap().contains("empty dataset"));
+    }
+
+    #[tokio::test]
+    async fn calculate_percentile_out_of_range_returns_400() {
+        let app = build_app();
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0],
+            "percentile": 101.0
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let json = response_json(response).await;
+        assert!(
+            json["error"]
+                .as_str()
+                .unwrap()
+                .contains("between 0 and 100")
+        );
+    }
+
+    #[tokio::test]
+    async fn calculate_invalid_json_returns_400() {
+        let app = build_app();
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from("not valid json"))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        // axum returns 400 for JSON syntax errors
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn calculate_missing_content_type_returns_415() {
+        let app = build_app();
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0],
+            "percentile": 50.0
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNSUPPORTED_MEDIA_TYPE);
+    }
+
+    // --- POST /calculate/file (JSON upload) ---
+
+    fn multipart_body(boundary: &str, filename: &str, content: &[u8]) -> Vec<u8> {
+        let mut body = Vec::new();
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!(
+                "Content-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\n\
+                 Content-Type: application/octet-stream\r\n\r\n"
+            )
+            .as_bytes(),
+        );
+        body.extend_from_slice(content);
+        body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+        body
+    }
+
+    fn multipart_body_with_percentile(
+        boundary: &str,
+        filename: &str,
+        content: &[u8],
+        percentile: f64,
+    ) -> Vec<u8> {
+        let mut body = Vec::new();
+        // percentile field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!("Content-Disposition: form-data; name=\"percentile\"\r\n\r\n{percentile}\r\n")
+                .as_bytes(),
+        );
+        // file field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!(
+                "Content-Disposition: form-data; name=\"file\"; filename=\"{filename}\"\r\n\
+                 Content-Type: application/octet-stream\r\n\r\n"
+            )
+            .as_bytes(),
+        );
+        body.extend_from_slice(content);
+        body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+        body
+    }
+
+    #[tokio::test]
+    async fn calculate_file_json_upload() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        let json_data = b"[1.0, 2.0, 3.0, 4.0, 5.0]";
+        let body = multipart_body(boundary, "data.json", json_data);
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["count"], 5);
+        assert_eq!(json["percentile"], 95.0); // default
+    }
+
+    #[tokio::test]
+    async fn calculate_file_csv_upload() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        let csv_data = b"value\n1.0\n2.0\n3.0\n4.0\n5.0\n";
+        let body = multipart_body(boundary, "data.csv", csv_data);
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["count"], 5);
+        assert_eq!(json["percentile"], 95.0);
+    }
+
+    #[tokio::test]
+    async fn calculate_file_with_custom_percentile() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        let json_data = b"[1.0, 2.0, 3.0, 4.0, 5.0]";
+        let body = multipart_body_with_percentile(boundary, "data.json", json_data, 50.0);
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["percentile"], 50.0);
+        assert_eq!(json["result"], 3.0);
+    }
+
+    #[tokio::test]
+    async fn calculate_file_unsupported_format_returns_400() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        let body = multipart_body(boundary, "data.xml", b"<values><v>1</v></values>");
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let json = response_json(response).await;
+        assert!(
+            json["error"]
+                .as_str()
+                .unwrap()
+                .contains("Unsupported file format")
+        );
+    }
+
+    #[tokio::test]
+    async fn calculate_file_no_file_returns_400() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        // Send a multipart body with only a percentile field, no file
+        let body = format!(
+            "--{boundary}\r\n\
+             Content-Disposition: form-data; name=\"percentile\"\r\n\r\n\
+             50.0\r\n\
+             --{boundary}--\r\n"
+        );
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let json = response_json(response).await;
+        assert!(json["error"].as_str().unwrap().contains("No file provided"));
+    }
+
+    #[tokio::test]
+    async fn calculate_file_invalid_json_returns_400() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        let body = multipart_body(boundary, "bad.json", b"not valid json");
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let json = response_json(response).await;
+        assert!(
+            json["error"]
+                .as_str()
+                .unwrap()
+                .contains("Failed to parse JSON")
+        );
+    }
+
+    #[tokio::test]
+    async fn calculate_file_invalid_csv_returns_400() {
+        let app = build_app();
+        let boundary = "test-boundary";
+        // CSV with wrong header
+        let body = multipart_body(boundary, "bad.csv", b"wrong_header\n1.0\n2.0\n");
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
 }
