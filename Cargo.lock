@@ -1197,6 +1197,7 @@ dependencies = [
  "bytes",
  "clap",
  "csv",
+ "http-body-util",
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry_sdk",

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-02-12
+
+### Added
+- Integration tests for all API endpoints using `tower::ServiceExt::oneshot`
+  - `GET /health`: verifies status, service name, and version fields
+  - `POST /calculate`: valid request, default percentile, empty values, out-of-range percentile, invalid JSON, missing content-type
+  - `POST /calculate/file`: JSON upload, CSV upload, custom percentile, unsupported format, missing file, invalid JSON file, invalid CSV header
+- `http-body-util` dev-dependency for reading response bodies in tests
+
+### Changed
+- Extracted `build_app()` from `serve()` in server module for testability
+- Added `util` feature to `tower` dependency for `ServiceExt::oneshot`
+- CI now runs tests with `--features server` in addition to default feature set
+
 ## [0.3.5] - 2026-02-12
 
 ### Fixed
