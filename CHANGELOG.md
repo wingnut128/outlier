@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.4] - 2026-02-12
 
+### Fixed
+- Fixed server startup crash caused by duplicate global tracing subscriber initialization. Telemetry init is now only called in CLI mode.
+
 ## [0.3.3] - 2026-02-12
 
 ### Changed
