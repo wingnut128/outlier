@@ -238,18 +238,48 @@ cargo run -- -v 1,2,3,4,5
 
 ## Docker Usage
 
-### Build and Run
+### Pull from GHCR
 
 ```bash
-# Build the image
-docker build -t outlier:latest .
+docker pull ghcr.io/wingnut128/outlier:latest
+```
 
-# Run with CLI values
+### Build Locally
+
+```bash
+docker build -t outlier:latest .
+```
+
+### Run the Server
+
+```bash
+# Start the API server (default mode)
+docker run --rm -p 3000:3000 outlier:latest
+
+# With a config file
+docker run --rm -p 3000:3000 -v $(pwd)/config.example.toml:/etc/outlier/config.toml:ro \
+  outlier:latest --serve --config /etc/outlier/config.toml
+```
+
+### Run CLI Mode
+
+```bash
+# Calculate percentile from CLI values
 docker run --rm outlier:latest -v 1,2,3,4,5,6,7,8,9,10 -p 95
 
 # Run with a file (mount the examples directory)
 docker run --rm -v $(pwd)/examples:/data outlier:latest -f /data/sample.json -p 99
 ```
+
+### Docker Compose
+
+For local development with a config file mounted:
+
+```bash
+docker compose up
+```
+
+The server will be available at `http://localhost:3000`. See `docker-compose.yml` for configuration.
 
 ## Testing
 

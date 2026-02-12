@@ -1,0 +1,8 @@
+services:
+  outlier:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config.example.toml:/etc/outlier/config.toml:ro
+    command: ["--serve", "--config", "/etc/outlier/config.toml"]

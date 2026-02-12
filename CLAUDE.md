@@ -79,6 +79,14 @@ Main branch is protected. All changes must follow this workflow:
 
 Never push directly to main. Never force push to main.
 
+### Branch Naming
+
+Use the format `<linear-id>/<brief-description>` (e.g., `bea-35/dockerfile-container-publishing`). The Linear issue ID prefix enables automatic linking.
+
+### PR Conventions
+
+The PR body must reference the Linear issue ID (e.g., `Closes BEA-35`). This auto-closes the corresponding Linear issue when the PR is merged.
+
 ## Git Commit Guidelines
 
 - Do NOT add "Co-Authored-By" lines to commit messages
