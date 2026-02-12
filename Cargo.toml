@@ -15,11 +15,11 @@ tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 tracing-appender = "0.2"
-opentelemetry = "0.27"
-opentelemetry_sdk = { version = "0.27", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.27", features = ["tonic", "tls-roots"] }
-tracing-opentelemetry = "0.28"
-tonic = { version = "0.12", features = ["tls-roots"] }
+opentelemetry = "0.31"
+opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.31", features = ["grpc-tonic", "tls-roots"] }
+tracing-opentelemetry = "0.32"
+tonic = { version = "0.14", features = ["tls-native-roots"] }
 
 # Web server dependencies
 axum = { version = "0.8", features = ["multipart"], optional = true }

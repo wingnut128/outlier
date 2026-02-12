@@ -1,11 +1,16 @@
 use opentelemetry::trace::TracerProvider;
 use opentelemetry::{KeyValue, StringValue};
 use opentelemetry_otlp::{Protocol, WithExportConfig, WithTonicConfig};
-use opentelemetry_sdk::{Resource, runtime, trace as sdktrace};
+use opentelemetry_sdk::Resource;
+use opentelemetry_sdk::trace::SdkTracerProvider;
+use std::sync::OnceLock;
 use tonic::transport::ClientTlsConfig;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 const HONEYCOMB_ENDPOINT: &str = "https://api.honeycomb.io:443";
+
+/// Global storage for the tracer provider so we can shut it down later.
+static TRACER_PROVIDER: OnceLock<SdkTracerProvider> = OnceLock::new();
 
 /// Initialize telemetry with Honeycomb via OpenTelemetry.
 ///
@@ -43,20 +48,22 @@ pub fn init_telemetry() {
             .build()
             .expect("Failed to create OTLP exporter");
 
-        let resource = Resource::new(vec![KeyValue::new(
-            "service.name",
-            StringValue::from(service_name),
-        )]);
+        let resource = Resource::builder()
+            .with_attributes(vec![KeyValue::new(
+                "service.name",
+                StringValue::from(service_name),
+            )])
+            .build();
 
-        let tracer_provider = sdktrace::TracerProvider::builder()
-            .with_batch_exporter(exporter, runtime::Tokio)
+        let tracer_provider = SdkTracerProvider::builder()
+            .with_batch_exporter(exporter)
             .with_resource(resource)
             .build();
 
         let tracer = tracer_provider.tracer("outlier");
 
-        // Store provider globally for shutdown
-        opentelemetry::global::set_tracer_provider(tracer_provider);
+        // Store provider for later shutdown
+        let _ = TRACER_PROVIDER.set(tracer_provider);
 
         let otel_layer = tracing_opentelemetry::layer().with_tracer(tracer);
 
@@ -80,5 +87,7 @@ pub fn init_telemetry() {
 
 /// Shutdown the telemetry pipeline, flushing any pending spans.
 pub fn shutdown_telemetry() {
-    opentelemetry::global::shutdown_tracer_provider();
+    if let Some(provider) = TRACER_PROVIDER.get() {
+        let _ = provider.shutdown();
+    }
 }
