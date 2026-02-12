@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- Updated OpenTelemetry stack from 0.27 to 0.31 and tonic from 0.12 to 0.14, with refactored telemetry shutdown using `OnceLock`.
+- Updated axum to 0.8.8 and utoipa-swagger-ui to 9.0.2.
+- Updated anyhow to 1.0.101, clap to 4.5.58, toml to 1.0, and reqwest to 0.13.
+
 ## [0.3.2] - 2026-02-12
 
 ### Added
