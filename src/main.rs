@@ -45,18 +45,6 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Quick exit for --version/--help or no args - no telemetry initialization needed
-    let args_count = std::env::args().count();
-    if args_count == 1
-        || std::env::args().any(|a| a == "-V" || a == "--version" || a == "-h" || a == "--help")
-    {
-        if args_count == 1 {
-            // No arguments provided - show help
-            Args::parse_from(["outlier", "--help"]);
-        }
-        Args::parse(); // Prints version/help and exits
-    }
-
     let args = Args::parse();
 
     #[cfg(feature = "server")]
@@ -71,6 +59,13 @@ async fn main() -> Result<()> {
 
         // Start API server (server has its own logging via init_logging)
         return server::serve(config).await;
+    }
+
+    // Show help if no input provided
+    if args.file.is_none() && args.values.is_none() {
+        use clap::CommandFactory;
+        Args::command().print_help()?;
+        return Ok(());
     }
 
     // Initialize Honeycomb telemetry only for CLI mode
