@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.5] - 2026-02-12
 
+### Fixed
+- Fixed help output not displaying when running `outlier` with no arguments. Replaced early-exit arg counting logic with a clean post-parse check.
+
 ## [0.3.4] - 2026-02-12
 
 ### Fixed
