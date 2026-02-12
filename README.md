@@ -238,13 +238,7 @@ cargo run -- -v 1,2,3,4,5
 
 ## Docker Usage
 
-### Pull from GHCR
-
-```bash
-docker pull ghcr.io/wingnut128/outlier:latest
-```
-
-### Build Locally
+### Build
 
 ```bash
 docker build -t outlier:latest .
