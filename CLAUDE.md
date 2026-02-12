@@ -67,6 +67,18 @@ cargo release patch --execute  # 0.2.6 → 0.2.7
 cargo release minor --execute  # 0.2.6 → 0.3.0
 ```
 
+## Development Workflow
+
+Main branch is protected. All changes must follow this workflow:
+
+1. **Create a GitHub issue** with context for the work being done
+2. **Create a feature branch** from main (e.g., `fix/help-output`, `feat/new-endpoint`)
+3. **Push to the feature branch** and open a PR referencing the issue
+4. **CI must pass** before merging — required checks: Test, Clippy, Security Audit, Format
+5. **Merge the PR** into main only after CI passes
+
+Never push directly to main. Never force push to main.
+
 ## Git Commit Guidelines
 
 - Do NOT add "Co-Authored-By" lines to commit messages
