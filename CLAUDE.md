@@ -61,11 +61,10 @@ cargo run --example volume_test -- --with-api  # requires server running
 
 ## Releasing
 
-Uses cargo-release for versioning:
-```bash
-cargo release patch --execute  # 0.2.6 → 0.2.7
-cargo release minor --execute  # 0.2.6 → 0.3.0
-```
+Releases are done via the **Release** GitHub Actions workflow (`workflow_dispatch`).
+Go to Actions → Release → Run workflow, and select the bump type (patch, minor, major).
+
+Do NOT run `cargo release` locally — branch protection prevents direct pushes to main.
 
 ## Development Workflow
 
