@@ -57,9 +57,6 @@ async fn main() -> Result<()> {
         Args::parse(); // Prints version/help and exits
     }
 
-    // Initialize Honeycomb telemetry only for actual operations
-    telemetry::init_telemetry();
-
     let args = Args::parse();
 
     #[cfg(feature = "server")]
@@ -72,11 +69,12 @@ async fn main() -> Result<()> {
             config.server.port = port;
         }
 
-        // Start API server
-        let result = server::serve(config).await;
-        telemetry::shutdown_telemetry();
-        return result;
+        // Start API server (server has its own logging via init_logging)
+        return server::serve(config).await;
     }
+
+    // Initialize Honeycomb telemetry only for CLI mode
+    telemetry::init_telemetry();
 
     // Run CLI mode
     let result = run_cli(args);
