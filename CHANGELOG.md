@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-02-12
+
+### Added
+- Test case to verify the `10_000_000` value input limit.
+
+### Changed
+- Refactored tests from an inline module in `src/lib.rs` to a separate `src/tests.rs` file for better code organization.
+
 ## [0.3.1] - 2026-01-16
 
 ### Added
