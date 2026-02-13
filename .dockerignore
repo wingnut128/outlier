@@ -1,8 +1,8 @@
 target/
-Cargo.lock
 .git/
-.gitignore
-README.md
+.github/
 examples/
-Makefile
-.dockerignore
+*.md
+!README.md
+config.*.toml
+.gitignore

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Production-ready Dockerfile with `--features server`, dependency caching layer, `EXPOSE 3000`, and default `--serve` entrypoint
+- `.dockerignore` updated to include `Cargo.lock` for reproducible builds
+- `docker-compose.yml` for local development with config volume mount
+- Docker usage documentation in README (server mode, CLI mode, docker-compose)
+
+### Changed
+- CLAUDE.md updated with branch naming (`<linear-id>/<brief-description>`) and PR conventions for Linear integration
+
 ## [0.4.0] - 2026-02-12
 
 ### Added
