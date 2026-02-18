@@ -16,7 +16,7 @@ COPY src ./src
 RUN touch src/main.rs src/lib.rs && cargo build --release --features server
 
 # Runtime stage
-FROM debian:bookworm-slim
+FROM debian:13.3-slim
 
 # Install runtime dependencies
 RUN apt-get update && \
