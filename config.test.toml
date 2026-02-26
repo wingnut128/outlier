@@ -1,0 +1,23 @@
+# Test Configuration for Outlier API Server
+#
+# Mirrors development settings but with auth enabled
+# for testing API key authentication locally.
+#
+# Usage: make serve-test
+# Test:  curl -H "X-API-Key: dev-test-key" http://localhost:3000/health
+
+[logging]
+level = "debug"
+output = "stdout"
+format = "pretty"
+
+[server]
+port = 3000
+bind_ip = "0.0.0.0"
+
+[auth]
+enabled = true
+api_keys = ["dev-test-key"]
+
+[rate_limit]
+enabled = false
