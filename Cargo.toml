@@ -34,9 +34,16 @@ toml = { version = "1.0", optional = true }
 utoipa = { version = "5", features = ["axum_extras"], optional = true }
 utoipa-swagger-ui = { version = "9", features = ["axum"], optional = true }
 
+# Rate limiting
+governor = { version = "0.8", optional = true }
+
+# JWT authentication
+jsonwebtoken = { version = "9", optional = true }
+reqwest = { version = "0.13", features = ["json"], optional = true }
+
 [features]
 default = []
-server = ["axum", "bytes", "tower", "tower-http", "toml", "utoipa", "utoipa-swagger-ui"]
+server = ["axum", "bytes", "tower", "tower-http", "toml", "utoipa", "utoipa-swagger-ui", "governor", "jsonwebtoken", "reqwest"]
 
 [dev-dependencies]
 reqwest = { version = "0.13", features = ["json"] }

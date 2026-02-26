@@ -22,3 +22,18 @@ port = 8080
 
 # Bind to localhost only (nginx/caddy handles external traffic)
 bind_ip = "127.0.0.1"
+
+[auth]
+# API key authentication enabled in production
+enabled = true
+# Keys loaded from OUTLIER_API_KEYS env var (comma-separated).
+# Set via Doppler, 1Password CLI, Docker secrets, or K8s secrets.
+# Do NOT put production keys in this file.
+
+[rate_limit]
+# Rate limiting enabled in production
+enabled = true
+per_ip_per_second = 10
+per_ip_burst = 20
+global_per_second = 100
+global_burst = 200

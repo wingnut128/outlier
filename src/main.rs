@@ -7,6 +7,8 @@ mod telemetry;
 #[cfg(feature = "server")]
 mod config;
 #[cfg(feature = "server")]
+mod jwt;
+#[cfg(feature = "server")]
 mod server;
 
 #[derive(Parser, Debug)]
