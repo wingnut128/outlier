@@ -22,6 +22,9 @@ All notable changes to this project will be documented in this file.
 - `governor` dependency for rate limiting (optional, server feature)
 - `jsonwebtoken` and `reqwest` dependencies for JWT validation (optional, server feature)
 - 33 new tests covering auth, JWT, rate limiting, and both-mode scenarios
+- **Percentile Interpolation Methods**: 6 configurable methods via `--method`/`-m` CLI flag or `method` API field
+  - `linear` (default), `nearest_rank`, `lower`, `upper`, `midpoint`, `nearest_even`
+  - Per-method algorithm tests and serde roundtrip tests
 - Production-ready Dockerfile with `--features server`, dependency caching layer, `EXPOSE 3000`, and default `--serve` entrypoint
 - `.dockerignore` updated to include `Cargo.lock` for reproducible builds
 - `docker-compose.yml` for local development with config volume mount
@@ -32,6 +35,11 @@ All notable changes to this project will be documented in this file.
 - Server uses `into_make_service_with_connect_info::<SocketAddr>()` for per-IP rate limiting
 - Configuration expanded with `[auth]` and `[rate_limit]` sections (disabled by default, no breaking changes)
 - CLAUDE.md updated with branch naming (`<linear-id>/<brief-description>`) and PR conventions for Linear integration
+- `.gitignore` updated with security and credential exclusions
+- README updated to document all 6 percentile interpolation methods, `--method`/`-m` CLI flag, and `method` field in API examples
+
+### Fixed
+- Upgraded `jsonwebtoken` from v9 to v10.3.0 to resolve CVE-2026-25537
 
 ## [0.4.0] - 2026-02-12
 
