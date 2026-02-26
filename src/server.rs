@@ -25,7 +25,7 @@ use utoipa_swagger_ui::SwaggerUi;
 use crate::config::{AuthMode, Config, LogFormat, LogOutput};
 use crate::jwt::JwksCache;
 use outlier::{
-    CalculateRequest, CalculateResponse, ErrorResponse, calculate_percentile,
+    CalculateRequest, CalculateResponse, ErrorResponse, PercentileMethod, calculate_percentile,
     read_values_from_bytes,
 };
 
@@ -56,7 +56,7 @@ struct AppState {
         health
     ),
     components(
-        schemas(CalculateRequest, CalculateResponse, ErrorResponse)
+        schemas(CalculateRequest, CalculateResponse, ErrorResponse, PercentileMethod)
     ),
     tags(
         (name = "outlier", description = "Percentile calculation API")
@@ -109,16 +109,17 @@ where
     ),
     tag = "outlier"
 )]
-#[tracing::instrument(skip(payload), fields(percentile = %payload.percentile, value_count = %payload.values.len()))]
+#[tracing::instrument(skip(payload), fields(percentile = %payload.percentile, value_count = %payload.values.len(), method = %payload.method))]
 async fn calculate(
     Json(payload): Json<CalculateRequest>,
 ) -> Result<Json<CalculateResponse>, AppError> {
-    let result = calculate_percentile(&payload.values, payload.percentile)?;
+    let result = calculate_percentile(&payload.values, payload.percentile, payload.method)?;
 
     Ok(Json(CalculateResponse {
         count: payload.values.len(),
         percentile: payload.percentile,
         result,
+        method: payload.method,
     }))
 }
 
@@ -140,6 +141,7 @@ async fn calculate(
 #[tracing::instrument(skip(multipart))]
 async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateResponse>, AppError> {
     let mut percentile = 95.0;
+    let mut method = PercentileMethod::default();
     let mut file_data: Option<(String, Vec<u8>)> = None;
 
     // Process multipart fields
@@ -151,6 +153,12 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
                 && let Ok(p) = text.parse::<f64>()
             {
                 percentile = p;
+            }
+        } else if name == "method" {
+            if let Ok(text) = field.text().await
+                && let Ok(m) = serde_json::from_value(serde_json::Value::String(text))
+            {
+                method = m;
             }
         } else if name == "file" {
             let filename = field
@@ -172,12 +180,13 @@ async fn calculate_file(mut multipart: Multipart) -> Result<Json<CalculateRespon
 
     // Parse and calculate
     let values = read_values_from_bytes(&data, &filename)?;
-    let result = calculate_percentile(&values, percentile)?;
+    let result = calculate_percentile(&values, percentile, method)?;
 
     Ok(Json(CalculateResponse {
         count: values.len(),
         percentile,
         result,
+        method,
     }))
 }
 
@@ -1212,6 +1221,130 @@ M9LEGJLcpr1rIhS7lm02vRk=
             .unwrap();
 
         assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
+
+    // --- Method selection tests ---
+
+    #[tokio::test]
+    async fn calculate_returns_method_in_response() {
+        let app = build_app(test_app_state());
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "percentile": 50.0
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["method"], "linear");
+    }
+
+    #[tokio::test]
+    async fn calculate_with_explicit_method() {
+        let app = build_app(test_app_state());
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "percentile": 40.0,
+            "method": "nearest_rank"
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["method"], "nearest_rank");
+        // nearest_rank at P40: index=1.6, round→2, sorted[2]=3.0
+        assert_eq!(json["result"], 3.0);
+    }
+
+    #[tokio::test]
+    async fn calculate_with_invalid_method_returns_client_error() {
+        let app = build_app(test_app_state());
+
+        let body = serde_json::json!({
+            "values": [1.0, 2.0, 3.0],
+            "percentile": 50.0,
+            "method": "bogus"
+        });
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate")
+                    .header("content-type", "application/json")
+                    .body(Body::from(body.to_string()))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert!(response.status().is_client_error());
+    }
+
+    #[tokio::test]
+    async fn calculate_file_with_method_field() {
+        let app = build_app(test_app_state());
+        let boundary = "test-boundary";
+        let json_data = b"[1.0, 2.0, 3.0, 4.0, 5.0]";
+
+        // Build multipart body with method field
+        let mut body = Vec::new();
+        // method field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(b"Content-Disposition: form-data; name=\"method\"\r\n\r\nlower\r\n");
+        // percentile field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            b"Content-Disposition: form-data; name=\"percentile\"\r\n\r\n40\r\n",
+        );
+        // file field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            b"Content-Disposition: form-data; name=\"file\"; filename=\"data.json\"\r\n\
+              Content-Type: application/octet-stream\r\n\r\n",
+        );
+        body.extend_from_slice(json_data);
+        body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
+
+        let response = app
+            .oneshot(
+                Request::post("/calculate/file")
+                    .header(
+                        "content-type",
+                        format!("multipart/form-data; boundary={boundary}"),
+                    )
+                    .body(Body::from(body))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let json = response_json(response).await;
+        assert_eq!(json["method"], "lower");
+        // lower at P40: floor(1.6)=1, sorted[1]=2.0
+        assert_eq!(json["result"], 2.0);
     }
 
     // --- API Key Authentication tests ---

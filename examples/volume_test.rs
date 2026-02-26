@@ -12,7 +12,7 @@
 //! To start the server:
 //!   cargo run --features server -- --serve
 
-use outlier::{CalculateRequest, CalculateResponse, calculate_percentile};
+use outlier::{CalculateRequest, CalculateResponse, PercentileMethod, calculate_percentile};
 use std::time::Instant;
 
 const DEFAULT_NUM_VALUES: usize = 1_000_000;
@@ -186,7 +186,7 @@ fn generate_values(count: usize) -> Vec<f64> {
 fn run_percentile_test(values: &[f64], percentile: f64) -> Option<f64> {
     let start = Instant::now();
 
-    match calculate_percentile(values, percentile) {
+    match calculate_percentile(values, percentile, PercentileMethod::Linear) {
         Ok(result) => {
             let duration = start.elapsed();
             println!("  P{}: {:.4}", percentile, result);
@@ -228,6 +228,7 @@ async fn run_api_percentile_test(base_url: &str, values: &[f64], percentile: f64
     let request = CalculateRequest {
         values: values.to_vec(),
         percentile,
+        method: PercentileMethod::Linear,
     };
 
     let start = Instant::now();

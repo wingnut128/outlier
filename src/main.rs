@@ -36,6 +36,10 @@ struct Args {
     #[arg(short = 'p', long, default_value = "95")]
     percentile: f64,
 
+    /// Interpolation method
+    #[arg(short = 'm', long, default_value = "linear", value_enum)]
+    method: outlier::PercentileMethod,
+
     /// Input file (JSON or CSV format)
     #[arg(short = 'f', long)]
     file: Option<PathBuf>,
@@ -79,7 +83,7 @@ async fn main() -> Result<()> {
     result
 }
 
-#[tracing::instrument(skip_all, fields(percentile = %args.percentile))]
+#[tracing::instrument(skip_all, fields(percentile = %args.percentile, method = %args.method))]
 fn run_cli(args: Args) -> Result<()> {
     use outlier::{calculate_percentile, read_values_from_file};
 
@@ -102,9 +106,10 @@ fn run_cli(args: Args) -> Result<()> {
     }
 
     // Calculate percentile
-    let result = calculate_percentile(&values, args.percentile)?;
+    let result = calculate_percentile(&values, args.percentile, args.method)?;
 
     println!("Number of values: {}", values.len());
+    println!("Method: {}", args.method);
     println!("Percentile (P{}): {:.2}", args.percentile, result);
 
     Ok(())
