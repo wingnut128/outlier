@@ -16,7 +16,7 @@ A fast and efficient command-line tool for calculating percentiles from numerica
   - JSON files (array of numbers)
   - CSV files (single column of values)
   - Direct CLI values (comma-separated)
-- Linear interpolation for accurate percentile calculation
+- 6 interpolation methods: linear (default), nearest_rank, lower, upper, midpoint, nearest_even
 - Comprehensive unit tests with 100% coverage
 - Docker support for containerized environments
 - Makefile for convenient build automation
@@ -55,6 +55,7 @@ outlier -v 1,2,3,4,5,6,7,8,9,10
 Output:
 ```
 Number of values: 10
+Method: linear
 Percentile (P95): 9.55
 ```
 
@@ -64,6 +65,15 @@ Calculate the 99th percentile:
 ```bash
 outlier -p 99 -v 1,2,3,4,5,6,7,8,9,10
 ```
+
+### Specify Interpolation Method
+
+Use a different interpolation method:
+```bash
+outlier -p 40 -m nearest_rank -v 1,2,3,4,5
+```
+
+See [How Percentiles Work](#how-percentiles-work) for a description of each method.
 
 ### From JSON File
 
@@ -129,7 +139,8 @@ curl -X POST http://localhost:3000/calculate \
   -H "Content-Type: application/json" \
   -d '{
     "values": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    "percentile": 95
+    "percentile": 95,
+    "method": "linear"
   }'
 ```
 
@@ -138,7 +149,8 @@ Response:
 {
   "count": 10,
   "percentile": 95.0,
-  "result": 9.55
+  "result": 9.55,
+  "method": "linear"
 }
 ```
 
@@ -148,7 +160,8 @@ Upload a file (JSON or CSV) for calculation:
 ```bash
 curl -X POST http://localhost:3000/calculate/file \
   -F "file=@data.json" \
-  -F "percentile=99"
+  -F "percentile=99" \
+  -F "method=nearest_rank"
 ```
 
 Response:
@@ -156,7 +169,8 @@ Response:
 {
   "count": 100,
   "percentile": 99.0,
-  "result": 98.01
+  "result": 98.01,
+  "method": "nearest_rank"
 }
 ```
 
@@ -357,6 +371,7 @@ The server will be available at `http://localhost:3000`. See `docker-compose.yml
 
 The project includes comprehensive unit tests covering:
 - Various percentile values (P0, P50, P95, P99, P100)
+- Per-method algorithm correctness for all 6 interpolation methods
 - Edge cases (empty datasets, single values, duplicates)
 - Unsorted input handling
 - Large datasets (1000+ values)
@@ -398,6 +413,7 @@ The volume test measures:
 ## Command-Line Options
 
 - `-p, --percentile <VALUE>`: Percentile to calculate (0-100). Default: 95
+- `-m, --method <METHOD>`: Interpolation method. Values: `linear`, `nearest_rank`, `lower`, `upper`, `midpoint`, `nearest_even`. Default: `linear`
 - `-f, --file <PATH>`: Input file path (JSON or CSV format)
 - `-v, --values <VALUES>`: Comma-separated numerical values
 - `-h, --help`: Print help information
@@ -420,14 +436,19 @@ outlier -v 100,200,300,400,500,600,700,800,900,1000
 
 ## How Percentiles Work
 
-The tool uses linear interpolation to calculate percentiles accurately. For a given percentile P:
+For a given percentile P, values are sorted in ascending order and the fractional index is calculated as `(P/100) × (N-1)`. The interpolation method determines how that index maps to a result value:
 
-1. Values are sorted in ascending order
-2. The position is calculated as: `(P/100) × (N-1)` where N is the count of values
-3. If the position falls between two values, linear interpolation is used to determine the result
+| Method | Description |
+|--------|-------------|
+| `linear` | Linearly interpolate between the two adjacent values (default) |
+| `nearest_rank` | Round the index to the nearest integer |
+| `lower` | Always round the index down (floor) |
+| `upper` | Always round the index up (ceil) |
+| `midpoint` | Average the floor and ceil values |
+| `nearest_even` | Round half to even index (banker's rounding) |
 
-For example, P95 of [1,2,3,4,5,6,7,8,9,10]:
-- Position = 0.95 × 9 = 8.55
+**Example — P95 of [1,2,3,4,5,6,7,8,9,10] using `linear`:**
+- Index = 0.95 × 9 = 8.55
 - Result = linear interpolation between values at index 8 (9) and index 9 (10)
 - P95 = 9.55
 
