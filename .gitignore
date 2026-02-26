@@ -18,8 +18,23 @@
 *.swo
 *~
 
-# Mac
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment and credential files
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+*.tfvars
+
+# SSH/security
+.ssh/
+
+# Secrets management
+doppler.yaml
 
 # Local templates
 SPEC_TEMPLATE.md
