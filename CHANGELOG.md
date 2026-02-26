@@ -4,13 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-02-26
+
 ### Added
+- **API Key Authentication**: Optional `X-API-Key` header authentication with constant-time comparison
+  - Keys resolved from `OUTLIER_API_KEYS` env var (primary) or config file (fallback)
+  - Fail-fast at startup if auth enabled but no keys configured
+- **JWT/IdP Authentication**: Support for Auth0, Google, Okta, and any OIDC-compliant provider
+  - JWKS endpoint caching with configurable TTL and refresh-on-miss for key rotation
+  - Env var overrides: `OUTLIER_JWT_ISSUER`, `OUTLIER_JWT_AUDIENCE`, `OUTLIER_JWT_JWKS_URL`
+  - New `src/jwt.rs` module with `JwksCache`, `Claims`, and `JwtError` types
+- **Three Auth Modes**: `api_key`, `jwt`, and `both` (auto-detects `Authorization: Bearer` vs `X-API-Key` headers)
+- **Rate Limiting**: Optional per-IP and global rate limiting using governor (token bucket algorithm)
+  - Configurable per-IP and global request rates and burst sizes
+  - Returns `429 Too Many Requests` with `Retry-After` header
+- Public routes (`/health`, `/docs`, `/api-docs`) exempt from auth and rate limiting
+- `governor` dependency for rate limiting (optional, server feature)
+- `jsonwebtoken` and `reqwest` dependencies for JWT validation (optional, server feature)
+- 33 new tests covering auth, JWT, rate limiting, and both-mode scenarios
 - Production-ready Dockerfile with `--features server`, dependency caching layer, `EXPOSE 3000`, and default `--serve` entrypoint
 - `.dockerignore` updated to include `Cargo.lock` for reproducible builds
 - `docker-compose.yml` for local development with config volume mount
 - Docker usage documentation in README (server mode, CLI mode, docker-compose)
 
 ### Changed
+- `build_app()` now accepts `AppState` parameter for middleware configuration
+- Server uses `into_make_service_with_connect_info::<SocketAddr>()` for per-IP rate limiting
+- Configuration expanded with `[auth]` and `[rate_limit]` sections (disabled by default, no breaking changes)
 - CLAUDE.md updated with branch naming (`<linear-id>/<brief-description>`) and PR conventions for Linear integration
 
 ## [0.4.0] - 2026-02-12

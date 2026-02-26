@@ -172,9 +172,87 @@ Response:
 {
   "status": "healthy",
   "service": "outlier",
-  "version": "0.2.3"
+  "version": "0.5.0"
 }
 ```
+
+### Authentication
+
+Authentication is optional and disabled by default. Enable it in your config file:
+
+#### API Key Mode
+
+```toml
+[auth]
+enabled = true
+mode = "api_key"
+```
+
+Set keys via environment variable (recommended) or config file:
+```bash
+export OUTLIER_API_KEYS="key1,key2,key3"
+```
+
+```bash
+curl -X POST http://localhost:3000/calculate \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{"values": [1,2,3,4,5], "percentile": 95}'
+```
+
+#### JWT/IdP Mode
+
+Supports Auth0, Google, Okta, and any OIDC-compliant provider:
+
+```toml
+[auth]
+enabled = true
+mode = "jwt"
+
+[auth.jwt]
+issuer = "https://your-tenant.auth0.com/"
+audience = "https://api.your-domain.com"
+```
+
+Env var overrides are available: `OUTLIER_JWT_ISSUER`, `OUTLIER_JWT_AUDIENCE`, `OUTLIER_JWT_JWKS_URL`.
+
+```bash
+curl -X POST http://localhost:3000/calculate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -d '{"values": [1,2,3,4,5], "percentile": 95}'
+```
+
+#### Both Mode
+
+Accepts either `X-API-Key` or `Authorization: Bearer` headers:
+
+```toml
+[auth]
+enabled = true
+mode = "both"
+
+[auth.jwt]
+issuer = "https://your-tenant.auth0.com/"
+audience = "https://api.your-domain.com"
+```
+
+The `/health`, `/docs`, and `/api-docs` endpoints are always accessible without authentication.
+
+### Rate Limiting
+
+Optional per-IP and global rate limiting, disabled by default:
+
+```toml
+[rate_limit]
+enabled = true
+per_ip_per_second = 10
+per_ip_burst = 20
+global_per_second = 100
+global_burst = 200
+```
+
+When rate limited, the server returns `429 Too Many Requests` with a `Retry-After` header.
 
 ## Observability
 
