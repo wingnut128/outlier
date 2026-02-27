@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 0.5.2)"
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate version matches Cargo.toml
+        run: |
+          cargo_version=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+          if [ "$cargo_version" != "${{ inputs.version }}" ]; then
+            echo "::error::Version mismatch: Cargo.toml has ${cargo_version} but release requested ${{ inputs.version }}"
+            echo "Bump Cargo.toml to ${{ inputs.version }} via a PR first."
+            exit 1
+          fi
+
+      - name: Validate changelog has version entry
+        run: |
+          if ! grep -q "## \[${{ inputs.version }}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no entry for [${{ inputs.version }}]"
+            echo "Add a changelog entry via a PR first."
+            exit 1
+          fi
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          # Extract the section between this version header and the next version header
+          notes=$(awk '/^## \[${{ inputs.version }}\]/{found=1; next} /^## \[/{if(found) exit} found{print}' CHANGELOG.md)
+          # Write to file for gh release
+          echo "$notes" > /tmp/release-notes.md
+
+      - name: Create GitHub release
+        run: |
+          gh release create "v${{ inputs.version }}" \
+            --target main \
+            --title "outlier v${{ inputs.version }}" \
+            --notes-file /tmp/release-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
