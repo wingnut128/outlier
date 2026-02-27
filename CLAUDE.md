@@ -61,10 +61,11 @@ cargo run --example volume_test -- --with-api  # requires server running
 
 ## Releasing
 
-Releases are done via the **Release** GitHub Actions workflow (`workflow_dispatch`).
-Go to Actions → Release → Run workflow, and select the bump type (patch, minor, major).
+Releases are created manually using the GitHub CLI:
 
-Do NOT run `cargo release` locally — branch protection prevents direct pushes to main.
+1. Bump the version in `Cargo.toml` via a PR
+2. Update `CHANGELOG.md` with the new version entry
+3. After merging, create the release: `gh release create v<version> --target main --title "outlier v<version>" --notes "..."`
 
 ## Development Workflow
 

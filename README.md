@@ -462,19 +462,15 @@ For a given percentile P, values are sorted in ascending order and the fractiona
 
 ## Releasing
 
-This project uses [cargo-release](https://github.com/crate-ci/cargo-release) for version management. To create a new release:
+Releases are created manually:
+
+1. Bump the version in `Cargo.toml` via a PR
+2. Update `CHANGELOG.md` with the new version entry
+3. After merging, create the release:
 
 ```bash
-# Preview the release (dry run is default)
-cargo release patch    # 0.1.0 → 0.1.1
-cargo release minor    # 0.1.0 → 0.2.0
-cargo release major    # 0.1.0 → 1.0.0
-
-# Execute the release
-cargo release patch --execute
+gh release create v<version> --target main --title "outlier v<version>" --notes "..."
 ```
-
-See [RELEASING.md](RELEASING.md) for detailed instructions.
 
 ## License
 
