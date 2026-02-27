@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-02-27
+
+### Changed
+- Bumped version to 0.5.1 to align with GitHub release
+- Disabled automated release workflow pending branch protection resolution
+
 ## [0.5.0] - 2026-02-26
 
 ### Added
