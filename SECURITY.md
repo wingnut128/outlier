@@ -6,8 +6,8 @@ The following versions of outlier are currently supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.2.x   | :white_check_mark: |
-| < 0.2.0 | :x:                |
+| 0.5.x   | :white_check_mark: |
+| < 0.5.0 | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -55,3 +55,5 @@ When using outlier:
 - **No network access by default**: CLI mode operates entirely locally
 - **No data persistence**: outlier does not store or cache any data
 - **Minimal dependencies**: We keep dependencies minimal and regularly audited
+- **Optional authentication**: API key (constant-time comparison) and JWT/OIDC validation with JWKS caching
+- **Rate limiting**: Optional per-IP and global rate limiting to prevent abuse

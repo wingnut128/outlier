@@ -42,9 +42,11 @@ cargo run --example volume_test -- --with-api  # requires server running
 
 ### Module Structure
 
-- **src/lib.rs** - Core library with `calculate_percentile()` function and file parsing utilities. Exports public types (`CalculateRequest`, `CalculateResponse`, `ErrorResponse`) used by both CLI and server.
+- **src/lib.rs** - Core library with `calculate_percentile()` function, `PercentileMethod` enum, and file parsing utilities. Exports public types (`CalculateRequest`, `CalculateResponse`, `ErrorResponse`) used by both CLI and server.
 - **src/main.rs** - CLI entrypoint using clap. Handles argument parsing and delegates to either CLI mode or server mode.
 - **src/server.rs** - Axum-based HTTP API (behind `server` feature flag). Provides `/calculate`, `/calculate/file`, and `/health` endpoints with OpenAPI/Swagger docs at `/docs`.
+- **src/config.rs** - TOML configuration file loading for server mode (auth, rate limiting, logging, server settings).
+- **src/jwt.rs** - JWT/OIDC validation with JWKS caching for IdP authentication.
 - **src/telemetry.rs** - OpenTelemetry integration for Honeycomb tracing. Configurable via `HONEYCOMB_API_KEY` and `OTEL_SERVICE_NAME` env vars.
 
 ### Feature Flags
@@ -74,7 +76,7 @@ Main branch is protected. All changes must follow this workflow:
 1. **Create a GitHub issue** with context for the work being done
 2. **Create a feature branch** from main (e.g., `fix/help-output`, `feat/new-endpoint`)
 3. **Push to the feature branch** and open a PR referencing the issue
-4. **CI must pass** before merging — required checks: Test, Clippy, Security Audit, Format
+4. **CI must pass** before merging — required checks: Test, Clippy, Security Audit, Format, Analyze (CodeQL)
 5. **Merge the PR** into main only after CI passes
 
 Never push directly to main. Never force push to main.
